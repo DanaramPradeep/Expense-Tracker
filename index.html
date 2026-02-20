@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expense Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- Background Grid -->
+  <div class="bg-grid"></div>
+
+  <div class="app-wrapper">
+
+    <!-- ───── HEADER ───── -->
+    <header class="header">
+      <div class="header-brand">
+        <span class="logo-icon">💸</span>
+        <div>
+          <h1 class="app-title">XPENSE</h1>
+          <p class="app-sub">Track. Analyse. Control.</p>
+        </div>
+      </div>
+      <div class="header-date" id="currentDate"></div>
+    </header>
+
+    <!-- ───── SUMMARY CARDS ───── -->
+    <section class="summary-grid">
+      <div class="card card--balance">
+        <p class="card-label">Total Balance</p>
+        <h2 class="card-amount" id="totalBalance">₹0.00</h2>
+        <div class="card-bar"><div class="card-bar-fill" id="balanceBar"></div></div>
+      </div>
+      <div class="card card--income">
+        <p class="card-label">Total Income</p>
+        <h2 class="card-amount" id="totalIncome">₹0.00</h2>
+        <span class="card-tag">+</span>
+      </div>
+      <div class="card card--expense">
+        <p class="card-label">Total Expense</p>
+        <h2 class="card-amount" id="totalExpense">₹0.00</h2>
+        <span class="card-tag">−</span>
+      </div>
+    </section>
+
+    <!-- ───── MAIN GRID ───── -->
+    <div class="main-grid">
+
+      <!-- LEFT: Add Transaction -->
+      <section class="panel panel--form">
+        <h2 class="panel-title">Add Transaction</h2>
+
+        <div class="form-group">
+          <label for="txnDesc">Description</label>
+          <input type="text" id="txnDesc" placeholder="e.g. Monthly Salary, Groceries…" autocomplete="off"/>
+        </div>
+
+        <div class="form-group">
+          <label for="txnAmount">Amount (₹)</label>
+          <input type="number" id="txnAmount" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+
+        <div class="form-group">
+          <label for="txnCategory">Category</label>
+          <select id="txnCategory">
+            <option value="food">🍔 Food & Dining</option>
+            <option value="transport">🚗 Transport</option>
+            <option value="shopping">🛍️ Shopping</option>
+            <option value="entertainment">🎬 Entertainment</option>
+            <option value="health">💊 Health</option>
+            <option value="education">📚 Education</option>
+            <option value="bills">🧾 Bills & Utilities</option>
+            <option value="salary">💼 Salary</option>
+            <option value="investment">📈 Investment</option>
+            <option value="other">🔖 Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="txnDate">Date</label>
+          <input type="date" id="txnDate"/>
+        </div>
+
+        <div class="type-toggle">
+          <button class="toggle-btn toggle-btn--income active" id="btnIncome" onclick="setType('income')">
+            ↑ Income
+          </button>
+          <button class="toggle-btn toggle-btn--expense" id="btnExpense" onclick="setType('expense')">
+            ↓ Expense
+          </button>
+        </div>
+
+        <button class="btn-add" id="addBtn" onclick="addTransaction()">
+          <span>+ Add Transaction</span>
+        </button>
+
+        <!-- Budget Tracker -->
+        <div class="budget-section">
+          <h3 class="budget-title">Monthly Budget</h3>
+          <div class="budget-row">
+            <input type="number" id="budgetInput" placeholder="Set budget…" min="0"/>
+            <button onclick="setBudget()">Set</button>
+          </div>
+          <div class="budget-bar-wrap" id="budgetBarWrap" style="display:none">
+            <div class="budget-labels">
+              <span id="budgetUsed">₹0 used</span>
+              <span id="budgetLimit">of ₹0</span>
+            </div>
+            <div class="budget-track">
+              <div class="budget-fill" id="budgetFill"></div>
+            </div>
+            <p class="budget-msg" id="budgetMsg"></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: History + Charts -->
+      <section class="panel panel--history">
+
+        <!-- Tabs -->
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('history', this)">History</button>
+          <button class="tab" onclick="switchTab('charts', this)">Charts</button>
+          <button class="tab" onclick="switchTab('summary', this)">Summary</button>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar" id="filterBar">
+          <input type="text" id="searchInput" placeholder="🔍  Search…" oninput="renderList()"/>
+          <select id="filterCategory" onchange="renderList()">
+            <option value="all">All Categories</option>
+            <option value="food">Food</option>
+            <option value="transport">Transport</option>
+            <option value="shopping">Shopping</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="health">Health</option>
+            <option value="education">Education</option>
+            <option value="bills">Bills</option>
+            <option value="salary">Salary</option>
+            <option value="investment">Investment</option>
+            <option value="other">Other</option>
+          </select>
+          <select id="filterType" onchange="renderList()">
+            <option value="all">All Types</option>
+            <option value="income">Income</option>
+            <option value="expense">Expense</option>
+          </select>
+          <button class="btn-clear" onclick="clearAll()">🗑 Clear All</button>
+        </div>
+
+        <!-- TAB: History -->
+        <div class="tab-content active" id="tab-history">
+          <ul class="txn-list" id="txnList">
+            <li class="empty-state" id="emptyState">
+              <span>📭</span>
+              <p>No transactions yet.<br/>Add your first one!</p>
+            </li>
+          </ul>
+        </div>
+
+        <!-- TAB: Charts -->
+        <div class="tab-content" id="tab-charts">
+          <div class="chart-wrap">
+            <h3 class="chart-heading">Spending by Category</h3>
+            <canvas id="categoryChart"></canvas>
+            <div id="legendWrap" class="legend-wrap"></div>
+          </div>
+          <div class="chart-wrap">
+            <h3 class="chart-heading">Income vs Expense</h3>
+            <canvas id="compareChart"></canvas>
+          </div>
+        </div>
+
+        <!-- TAB: Summary -->
+        <div class="tab-content" id="tab-summary">
+          <div class="summary-stats" id="summaryStats">
+            <div class="stat-box">
+              <p class="stat-label">Transactions</p>
+              <p class="stat-val" id="statCount">0</p>
+            </div>
+            <div class="stat-box">
+              <p class="stat-label">Avg Expense</p>
+              <p class="stat-val" id="statAvg">₹0</p>
+            </div>
+            <div class="stat-box">
+              <p class="stat-label">Biggest Expense</p>
+              <p class="stat-val" id="statMax">₹0</p>
+            </div>
+            <div class="stat-box">
+              <p class="stat-label">Savings Rate</p>
+              <p class="stat-val" id="statSavings">0%</p>
+            </div>
+          </div>
+          <div class="top-categories" id="topCategories"></div>
+          <div class="export-wrap">
+            <button class="btn-export" onclick="exportCSV()">⬇ Export CSV</button>
+          </div>
+        </div>
+
+      </section>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
